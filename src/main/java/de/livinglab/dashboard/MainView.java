@@ -18,6 +18,7 @@ import com.google.common.util.concurrent.ServiceManager;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ClassResource;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
@@ -38,6 +39,7 @@ import de.livinglab.dashboard.events.InstanceSelected;
 import de.livinglab.dashboard.events.LoadComplete;
 import de.livinglab.dashboard.events.LoadRequest;
 import de.livinglab.dashboard.events.ProcessSelected;
+import de.livinglab.dashboard.events.UiEvent;
 import de.livinglab.dashboard.events.XmlSelected;
 
 @VaadinView(name = "mainView")
@@ -59,9 +61,6 @@ public class MainView extends VerticalLayout implements View {
 	EventBus eb;
 	
 	@Autowired
-	XmlPanel xmlPanel;
-	
-	@Autowired
 	MapPanel mapPanel;
 	
 	@Autowired
@@ -69,6 +68,9 @@ public class MainView extends VerticalLayout implements View {
 	
 	@Autowired
 	ProcessPanel processPanel;
+	
+	@Autowired
+	TaskPanel taskPanel;
 	
 	private GridLayout grid;
 	
@@ -80,14 +82,6 @@ public class MainView extends VerticalLayout implements View {
 		
 		@Subscribe
 		public void recordLoadComplete(final LoadComplete event){
-			if(event.getReq().getUri().equals(env.getProperty("lsp.url")) && (event.getReq().getReturnType() == String.class)){
-				ui.access(new Runnable() {
-					@Override
-					public void run() {
-						loadProviders(dataService.getResource(event.getReq(), String.class));
-					}
-				});
-			}
 			if(event.getReq().getReturnType() == LogisticsServiceProvider.class){
 				ui.access(new Runnable() {
 					@Override
@@ -133,22 +127,22 @@ public class MainView extends VerticalLayout implements View {
 					}
 				});
 			}
+			else if(event.getReq().getUri().contains("locations")){
+				ui.access(new Runnable() {
+					@Override
+					public void run() {
+						loadLocations(dataService.getResource(event.getReq(), Locations.class));
+					}
+				});
+			}
 		}
 		
 	}
 	
 	class UserInputRecorder{
 		@Subscribe
-		public void recordXmlSelected(XmlSelected event){
-			log.info(event.getNodeString());
-		}
-		@Subscribe
-		public void recordProcessSelected(ProcessSelected event){
-			log.info(event.getDefiniton().getId()+" selected");
-		}
-		@Subscribe
-		public void recordInstanceSelected(InstanceSelected event){
-			log.info(event.getInstance().getId()+" selected");
+		public void recordUiEvent(UiEvent event){
+			log.info(event.toString());
 		}
 	}
 
@@ -163,36 +157,18 @@ public class MainView extends VerticalLayout implements View {
 	
 	@PostConstruct
 	public void init(){
-		grid.addComponent(xmlPanel);
         grid.addComponent(mapPanel);
         grid.addComponent(processPanel);
         grid.addComponent(lspPanel);
+        grid.addComponent(taskPanel);
         eb.register(new LoadRecorder(UI.getCurrent()));
         eb.register(new UserInputRecorder());
         loadInitialResources();
 	}
 	
 	private void loadInitialResources() {
-		if(!dataService.isLoaded(env.getProperty("lsp.url"), String.class)){
-			eb.post(new LoadRequest(env.getProperty("lsp.url"), LoadRequest.ResourceType.PLAIN_XML, String.class, false));
-			}
-		else{
-			loadProviders(dataService.getResource(env.getProperty("lsp.url"), String.class));
-		}
-		
-		if(!dataService.isLoaded(env.getProperty("lsp.url"), LogisticsServiceProvider.class)){
-			eb.post(new LoadRequest(env.getProperty("lsp.url"), LoadRequest.ResourceType.PLAIN_XML, LogisticsServiceProvider.class, false));
-		}
-		else{
-			loadLsps(dataService.getResource(env.getProperty("lsp.url"), LogisticsServiceProvider.class));
-		}
-
-		if(!dataService.isLoaded(env.getProperty("jbpm.definitions"))){
-			eb.post(new LoadRequest(env.getProperty("jbpm.definitions"), LoadRequest.ResourceType.PLAIN_JSON, Definitions.class, false));
-		}
-		else{
-			loadDefinitions(dataService.getResource(env.getProperty("jbpm.definitions"), Definitions.class));
-		}
+		eb.post(new LoadRequest(env.getProperty("lsp.url"), LoadRequest.ResourceType.PLAIN_XML, LogisticsServiceProvider.class, false));
+		eb.post(new LoadRequest(env.getProperty("jbpm.definitions"), LoadRequest.ResourceType.PLAIN_JSON, Definitions.class, false));
 		
 	}
 	
@@ -228,10 +204,6 @@ public class MainView extends VerticalLayout implements View {
 	private void loadInstances(Instances insts) {
 		processPanel.readInstances(insts);
 	}
-
-	private void loadProviders(String xml) {
-		xmlPanel.readXml(xml);
-	}
 	
 	private void loadLsps(LogisticsServiceProvider providers) {
 		lspPanel.readLsps(providers);
@@ -243,6 +215,10 @@ public class MainView extends VerticalLayout implements View {
 
 	private void loadDataset(String xml) {
 		processPanel.readDetailsXml(xml);
+	}
+
+	private void loadLocations(Locations locs) {
+		lspPanel.readLocations(locs);		
 	}
 
 	private void initGrid() {
@@ -261,7 +237,7 @@ public class MainView extends VerticalLayout implements View {
         top.addStyleName("toolbar");
         addComponent(top);
         
-        Image logoImage = new Image(null, new ClassResource("/de/livinglab/dashboard/resources/livinglab_logo.png"));
+        Image logoImage = new Image(null, new ThemeResource("img/livinglab_logo.png"));
         top.addComponent(logoImage);
         
         Label title = new Label("4PL Dashboard");

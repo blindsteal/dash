@@ -12,16 +12,21 @@ import nu.xom.ParsingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.vaadin.spring.UIScope;
 
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.server.ExternalResource;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.BrowserFrame;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TreeTable;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
+import com.vaadin.ui.Button.ClickEvent;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.EventBus;
 
@@ -34,14 +39,15 @@ import de.livinglab.dashboard.events.InstanceSelected;
 import de.livinglab.dashboard.events.ProcessSelected;
 
 @Component("processPanel")
+@UIScope
 public class ProcessPanel extends Panel {
-	private enum IDS{CAPTION}
+	private enum IDS{CAPTION, BUTTON}
 
 	private static final String CAPTION = "Process View";
 	
 	private TreeTable tt;
 	
-	private Window designerWindow, detailsWindow;
+	private Window designerWindow, detailsWindow, formWindow;
 	
 	private XmlPanel detailsPanel;
 	
@@ -77,6 +83,11 @@ public class ProcessPanel extends Panel {
 		designerWindow.setHeight("60%");
 		designerWindow.center();
 		
+		formWindow = new Window("Instance Details");
+		formWindow.setWidth("40%");
+		formWindow.setHeight("60%");
+		formWindow.center();
+		
 		detailsWindow = new Window("Instance Details");
 		detailsWindow.setWidth("40%");
 		detailsWindow.setHeight("60%");
@@ -90,6 +101,7 @@ public class ProcessPanel extends Panel {
 		tt.setImmediate(true);
 		tt.setSizeFull();
 		tt.addContainerProperty(IDS.CAPTION, String.class, "");
+		tt.addContainerProperty(IDS.BUTTON, Button.class, null);
 		tt.setColumnHeaderMode(TreeTable.ColumnHeaderMode.HIDDEN);
 		tt.setColumnExpandRatio(IDS.CAPTION, 1);
 		setContent(tt);
@@ -147,6 +159,21 @@ public class ProcessPanel extends Panel {
 			String caption = def.getId() + " (version: " + def.getVersion() +", suspended: "+def.isSuspended()+")";
 			tt.addItem(def);
 			tt.getItem(def).getItemProperty(IDS.CAPTION).setValue(caption);
+
+			Button button = new Button(FontAwesome.PLUS_CIRCLE);
+			button.setData(def);
+			button.addClickListener(new ClickListener() {
+				
+				@Override
+				public void buttonClick(ClickEvent event) {
+					Definition d = (Definition) event.getButton().getData();
+					BrowserFrame bf = new BrowserFrame(null, new ExternalResource(d.getFormUrl()));
+					bf.setSizeFull();
+					formWindow.setContent(bf);
+					UI.getCurrent().addWindow(formWindow);
+				}
+			});;
+			tt.getItem(def).getItemProperty(IDS.BUTTON).setValue(button);
 		}
 		markAsDirtyRecursive();
 	}

@@ -1,6 +1,6 @@
 package de.livinglab.dashboard.events;
 
-public final class XmlSelected {
+public final class XmlSelected implements UiEvent{
 	private final String nodeString;
 
 	public XmlSelected(String nodeString) {
@@ -10,6 +10,11 @@ public final class XmlSelected {
 
 	public String getNodeString() {
 		return nodeString;
+	}
+
+	@Override
+	public String toString() {
+		return "XmlSelected [nodeString=" + nodeString + "]";
 	}
 
 }

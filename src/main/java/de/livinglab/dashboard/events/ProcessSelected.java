@@ -2,7 +2,7 @@ package de.livinglab.dashboard.events;
 
 import de.livinglab.dashboard.data.Definition;
 
-public final class ProcessSelected {
+public final class ProcessSelected implements UiEvent{
 	private final Definition definiton;
 
 	public ProcessSelected(Definition definiton) {
@@ -12,6 +12,11 @@ public final class ProcessSelected {
 
 	public Definition getDefiniton() {
 		return definiton;
+	}
+
+	@Override
+	public String toString() {
+		return "ProcessSelected [definiton=" + definiton + "]";
 	}
 
 	

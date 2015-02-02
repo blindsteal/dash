@@ -17,11 +17,11 @@ public class Location {
 	private String longitude;
 	
 	@XmlElement
-	private String name;
+	private String Name;
 	@XmlElement
-	private String postCode;
+	private String PostCode;
 	@XmlElement
-	private String city;
+	private String City;
 	@XmlElement
 	private String street;
 	@XmlElement
@@ -53,24 +53,6 @@ public class Location {
 	}
 	public void setLongitude(String longitude) {
 		this.longitude = longitude;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public String getPostCode() {
-		return postCode;
-	}
-	public void setPostCode(String postCode) {
-		this.postCode = postCode;
-	}
-	public String getCity() {
-		return city;
-	}
-	public void setCity(String city) {
-		this.city = city;
 	}
 	public String getStreet() {
 		return street;
@@ -135,8 +117,8 @@ public class Location {
 	@Override
 	public String toString() {
 		return "Location [latitude=" + latitude + ", longitude=" + longitude
-				+ ", name=" + name + ", postCode=" + postCode + ", city="
-				+ city + ", street=" + street + ", streetnumber="
+				+ ", Name=" + Name + ", PostCode=" + PostCode + ", City="
+				+ City + ", street=" + street + ", streetnumber="
 				+ streetnumber + ", phone=" + phone + ", mail=" + mail
 				+ ", fax=" + fax + ", transportCapability="
 				+ transportCapability + ", warehouseCapability="
@@ -144,6 +126,24 @@ public class Location {
 				+ packagingCapability + ", forwarderCapability="
 				+ forwarderCapability + ", valueAddedCapability="
 				+ valueAddedCapability + "]";
+	}
+	public String getName() {
+		return Name;
+	}
+	public void setName(String name) {
+		Name = name;
+	}
+	public String getPostCode() {
+		return PostCode;
+	}
+	public void setPostCode(String postCode) {
+		PostCode = postCode;
+	}
+	public String getCity() {
+		return City;
+	}
+	public void setCity(String city) {
+		City = city;
 	}
 
 

@@ -1,41 +1,29 @@
 package de.livinglab.dashboard;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
-import nu.xom.Builder;
-import nu.xom.Document;
-import nu.xom.Element;
-import nu.xom.ParsingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.vaadin.spring.UIScope;
 
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
-import com.vaadin.server.ExternalResource;
-import com.vaadin.ui.BrowserFrame;
-import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TreeTable;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.Window;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.EventBus;
 
-import de.livinglab.dashboard.data.Asset;
-import de.livinglab.dashboard.data.Definition;
-import de.livinglab.dashboard.data.Definitions;
-import de.livinglab.dashboard.data.Instance;
-import de.livinglab.dashboard.data.Instances;
+import de.livinglab.dashboard.data.Location;
+import de.livinglab.dashboard.data.Locations;
 import de.livinglab.dashboard.data.LogisticServiceProvider;
 import de.livinglab.dashboard.data.LogisticsServiceProvider;
-import de.livinglab.dashboard.events.InstanceSelected;
-import de.livinglab.dashboard.events.ProcessSelected;
+import de.livinglab.dashboard.events.LocationSelected;
+import de.livinglab.dashboard.events.LspSelected;
 
 @Component("lspPanel")
+@UIScope
 public class LspPanel extends Panel {
 	private enum IDS{CAPTION}
 
@@ -45,6 +33,8 @@ public class LspPanel extends Panel {
 	
 	private List<LogisticServiceProvider> lsps;
 	
+	private Map<LogisticServiceProvider, List<Location>> locMap;
+	
 	@Autowired
 	EventBus eb;
 	
@@ -53,6 +43,7 @@ public class LspPanel extends Panel {
 	
 	public LspPanel(){
 		super(CAPTION);
+		locMap = Maps.newConcurrentMap();
 		buildPanel();
 	}
 	
@@ -74,11 +65,25 @@ public class LspPanel extends Panel {
 			
 			public void valueChange(ValueChangeEvent event) {
 				Object o = tt.getValue();
+				if(o.getClass()==LogisticServiceProvider.class){
+					LogisticServiceProvider lsp = (LogisticServiceProvider)o;
+					eb.post(new LspSelected(lsp, locMap.get(lsp)));
+				}
+				if(o.getClass()==Location.class){
+					eb.post(new LocationSelected((Location)o));
+				}
 				
 			}
 		});
 		
 		
+	}
+	
+	private LogisticServiceProvider getLspById(String id){
+		for(LogisticServiceProvider lsp : lsps){
+			if(lsp.getId().equals(id)) return lsp;
+		}
+		return null;
 	}
 
 	public void readLsps(LogisticsServiceProvider providers){
@@ -91,6 +96,29 @@ public class LspPanel extends Panel {
 			
 		}
 		markAsDirtyRecursive();
+	}
+	
+	public void readLocations(Locations locs){
+		LogisticServiceProvider lsp = getLspById(locs.getLspId());
+		locMap.put(lsp, locs.getLocations());
+		for(Location loc : locs.getLocations()){
+			tt.addItem(loc);
+			String caption = loc.getName();
+			tt.getItem(loc).getItemProperty(IDS.CAPTION).setValue(caption);
+			tt.setParent(loc, lsp);
+			Object idA = tt.addItem();
+			tt.getItem(idA).getItemProperty(IDS.CAPTION).setValue("Adresse: "+loc.getStreet()+" "+loc.getStreetnumber()
+					+", "+loc.getPostCode()+" "+loc.getCity());
+			tt.setParent(idA, loc);
+			Object idM = tt.addItem();
+			tt.getItem(idM).getItemProperty(IDS.CAPTION).setValue("Mail: "+loc.getMail());
+			tt.setParent(idM, loc);
+			Object idP = tt.addItem();
+			tt.getItem(idP).getItemProperty(IDS.CAPTION).setValue("Phone: "+lsp.getPhone());
+			tt.setParent(idP, loc);
+			
+		}
+		
 	}
 	
 	private void addContactDetails(LogisticServiceProvider lsp){

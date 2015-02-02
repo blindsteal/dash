@@ -85,4 +85,12 @@ public class LogisticServiceProvider {
 	public void setFax(String fax) {
 		this.fax = fax;
 	}
+
+	@Override
+	public String toString() {
+		return "LogisticServiceProvider [id=" + id + ", Name=" + Name
+				+ ", mail=" + mail + ", Description=" + Description
+				+ ", IntegrationIP=" + IntegrationIP + ", phone=" + phone
+				+ ", fax=" + fax + "]";
+	}
 }

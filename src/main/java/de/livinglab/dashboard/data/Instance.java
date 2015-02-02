@@ -31,4 +31,9 @@ public class Instance {
 	public void setSuspended(boolean suspended) {
 		this.suspended = suspended;
 	}
+	@Override
+	public String toString() {
+		return "Instance [id=" + id + ", definitionId=" + definitionId
+				+ ", startDate=" + startDate + ", suspended=" + suspended + "]";
+	}
 }

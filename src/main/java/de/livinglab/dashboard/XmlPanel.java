@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.vaadin.spring.UIScope;
 
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -21,6 +22,7 @@ import com.google.common.eventbus.EventBus;
 import de.livinglab.dashboard.events.XmlSelected;
 
 @Component("xmlPanel")
+@UIScope
 public class XmlPanel extends Panel {
 	private enum IDS{CAPTION}
 
